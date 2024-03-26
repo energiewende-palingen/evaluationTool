@@ -1,8 +1,13 @@
+import { House } from "@prisma/client";
 import { createContext } from "react";
 
-export class ServerData
-{
-	
+
+export class District {
+	public houses : House[];
+
+	constructor(houses : House[]) {
+		this.houses = houses;
+	}
 }
 
-export const ServerContext = createContext<ServerData>(new ServerData());
+export const DistrictContext = createContext<District>(new District(new Array<House>()));

@@ -2,6 +2,8 @@ import myMapStyles from './MyMap.css';
 import React, { useContext, useState } from 'react'
 import { ApiContext } from '~/context/apiContext';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
+import { DistrictContext } from '~/context/serverModelContext';
+import { House } from '@prisma/client';
 
 export class HouseDetails{
 	public lat: number;
@@ -21,13 +23,15 @@ function MyMap() {
 	const containerStyle = {
 		height: '100vh'
 	};
-let key = useContext(ApiContext).googleMapsApiKey;
-  const { isLoaded } = useJsApiLoader({
-    
-	id: 'google-map-script',
-    googleMapsApiKey: key
-  })
+	
+	let key = useContext(ApiContext).googleMapsApiKey;
+	const { isLoaded } = useJsApiLoader({
+		
+		id: 'google-map-script',
+		googleMapsApiKey: key
+	});
 
+	let houses = useContext(DistrictContext).houses;
   const onLoad = React.useCallback(function callback(map) {
 
   }, [])
@@ -51,7 +55,21 @@ let key = useContext(ApiContext).googleMapsApiKey;
 					{ 
 					
 					}
-					
+					<></>
+					{houses.length ? (
+						houses.map((house : House) => {
+							let iconUrl: string= '/house.png';
+							return <Marker key={house.id} 
+								position={{lat: house.latitude, lng: house.longitude}}
+								icon={{
+									url: iconUrl,
+									anchor: new google.maps.Point(25, 25),
+									scaledSize: new google.maps.Size(50, 50)
+								}}
+								onClick={() => onMarkerClick(house)}
+							/>
+						})): <></>
+					}
 				</GoogleMap>
 			</div>
 		</div>	
