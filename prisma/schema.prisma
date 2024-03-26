@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model House {
+  id                String             @id @default(uuid())
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  street            String
+  city              String
+  houseNumber       String
+  postalCode        Int
+  country           String
+  latitude          Float
+  longitude         Float
+  solarPowerSystems SolarPowerSystem[]
+  houseHolds        HouseHold[]
+
+  @@unique([street, houseNumber, postalCode, city, country])
+}
+
+model HouseHold {
+  id                     String               @id @default(uuid())
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  houseId                String
+  house                  House                @relation(fields: [houseId], references: [id])
+  name                   String?
+  lastName               String?
+  email                  String?
+  phone                  String?
+  tenant                 Boolean?
+  owner                  Boolean?
+  lessee                 Boolean?
+  houseHoldSize          Int?
+  heatedArea             Int?
+  heatingSystemAge       Int?
+  houseHoldInterestId    String               @unique
+  interest               HouseHoldInterest    @relation(fields: [houseHoldInterestId], references: [id])
+  consumption            HouseHoldConsumption @relation(fields: [houseHoldConsumptionId], references: [id])
+  houseHoldConsumptionId String               @unique
+  comments               Comment[]
+}
+
+model HouseHoldConsumption {
+  id                         String     @id @default(uuid())
+  electricityConsumption     Int?
+  usesGasForHeat             Boolean?
+  usesWoodForHeat            Boolean?
+  usesOilForHeat             Boolean?
+  usesElectricityForHeat     Boolean?
+  heatConsumptionGas         Int?
+  heatConsumptionWood        Int?
+  heatConsumptionOil         Int?
+  heatConsumptionElectricity Int?
+  otherHeatingSystem         String?
+  houseHold                  HouseHold?
+}
+
+model HouseHoldInterest {
+  id                      String     @id @default(uuid())
+  overall                 Boolean    @default(false)
+  electricity             Boolean    @default(false)
+  heat                    Boolean    @default(false)
+  participateInProduction Boolean    @default(false)
+  investInCompany         Boolean    @default(false)
+  provideResources        Boolean    @default(false)
+  undecided               Boolean    @default(false)
+  noInterest              Boolean    @default(false)
+  houseHold               HouseHold?
+}
+
+model Comment {
+  id          String    @id @default(uuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userId      String
+  createdBy   User      @relation(fields: [userId], references: [id])
+  houseHoldId String
+  houseHold   HouseHold @relation(fields: [houseHoldId], references: [id])
+  comment     String
+}
+
+model User {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  email     String
+  password  String
+  role      String
+  comments  Comment[]
+}
+
+model SolarPowerSystem {
+  id              String   @id @default(uuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  houseId         String
+  house           House    @relation(fields: [houseId], references: [id])
+  installed       Boolean
+  azimuth         Int
+  roofTilt        Int
+  roofSize        Int
+  installedPower  Int
+  batteryCapacity Int
+}

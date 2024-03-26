@@ -3,9 +3,11 @@ import MyMap, {links as myMapLinks} from '~/components/MyMap';
 import { useLoaderData } from '@remix-run/react'; 
 import { ServerContext } from '~/context/serverModelContext';
 import { ApiContext, ApiData } from '~/context/apiContext';
+import { db } from '~/.server/db';
 
 export async function loader({params}) {
-	
+	let users = await db.user.findMany();
+	console.log(users);
 	return process.env.GOOGLE_MAPS_API_KEY ;
 }
 

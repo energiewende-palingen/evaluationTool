@@ -6,7 +6,6 @@ import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 export class HouseDetails{
 	public lat: number;
 	public lng: number;
-	
 
 	constructor(lat: number, lng: number){
 		this.lat = lat;
@@ -22,7 +21,7 @@ function MyMap() {
 	const containerStyle = {
 		height: '100vh'
 	};
-let key = useContext(ApiContext).googleMapsApiKey; 
+let key = useContext(ApiContext).googleMapsApiKey;
   const { isLoaded } = useJsApiLoader({
     
 	id: 'google-map-script',
