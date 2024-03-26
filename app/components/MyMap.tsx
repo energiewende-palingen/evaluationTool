@@ -1,16 +1,24 @@
 import myMapStyles from './MyMap.css';
 import React, { useContext, useState } from 'react'
 import { ApiContext } from '~/context/apiContext';
-import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Marker, MapContext } from '@react-google-maps/api';
 import { DistrictContext } from '~/context/serverModelContext';
-import { House } from '@prisma/client';
 import HouseMarker from './HouseMarker';
+import { Outlet, useNavigate } from '@remix-run/react';
+import { HouseViewData } from '~/dataStructures/HouseViewData';
 
 
   
 function MyMap() {
+	const navigate = useNavigate();
 	let houses = useContext(DistrictContext).houses;
+	console.log(`houses: ${houses.length}`);
 	const [mapState, setMapState] = useState({activeHouse: houses[0] , zoom: 18});
+
+	const onMarkerClick = (data : HouseViewData) => {
+		setMapState({activeHouse: data , zoom: 18});
+		navigate('/map/'+data.house.id);
+	}
 
 	const containerStyle = {
 		height: '100vh'
@@ -32,14 +40,13 @@ function MyMap() {
     
   }, [])
 
+  console.log(`active house: ${mapState.activeHouse.house.latitude} ${mapState.activeHouse.house.longitude}`);
   
   return isLoaded ? (
-	<div className="container">
-		<div className="row">
-			<div className="col-9">
+	
 				<GoogleMap
 					mapContainerStyle={containerStyle}
-					center={{lat: mapState.activeHouse.latitude, lng: mapState.activeHouse.longitude}}
+					center={{lat: mapState.activeHouse.house.latitude, lng: mapState.activeHouse.house.longitude}}
 					zoom={mapState.zoom}
 					onLoad={onLoad}
 					onUnmount={onUnmount}
@@ -49,14 +56,12 @@ function MyMap() {
 					}
 					<></>
 					{houses.length ? (
-						houses.map((house : House) => {
-							return <HouseMarker house={house}></HouseMarker> 
+						houses.map((viewData : HouseViewData) => {
+							return <HouseMarker view={viewData} onClick={onMarkerClick}></HouseMarker> 
 						})): <></>
 					}
 				</GoogleMap>
-			</div>
-		</div>	
-	</div>
+			
   ) : <></>
 }
 
@@ -65,3 +70,4 @@ export default MyMap;
 export function links() {	
 	return [{rel : 'stylesheet', href : myMapStyles}];
 }
+

@@ -1,13 +1,13 @@
-import { House } from "@prisma/client";
 import { createContext } from "react";
+import { HouseViewData } from "~/dataStructures/HouseViewData";
 
 
 export class District {
-	public houses : House[];
+	public houses : HouseViewData[];
 
-	constructor(houses : House[]) {
+	constructor(houses : HouseViewData[]) {
 		this.houses = houses;
 	}
 }
 
-export const DistrictContext = createContext<District>(new District(new Array<House>()));
+export const DistrictContext = createContext<District>(new District(new Array<HouseViewData>()));
