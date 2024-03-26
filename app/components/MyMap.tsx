@@ -4,22 +4,14 @@ import { ApiContext } from '~/context/apiContext';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import { DistrictContext } from '~/context/serverModelContext';
 import { House } from '@prisma/client';
+import HouseMarker from './HouseMarker';
 
-export class HouseDetails{
-	public lat: number;
-	public lng: number;
 
-	constructor(lat: number, lng: number){
-		this.lat = lat;
-		this.lng = lng;
-	}
-}
   
 function MyMap() {
-	
-	let defaultHouse = new HouseDetails(53.852961395165615, 10.803171416966505);
-	const [mapState, setMapState] = useState({activeHouse: defaultHouse , zoom: 18});
-	
+	let houses = useContext(DistrictContext).houses;
+	const [mapState, setMapState] = useState({activeHouse: houses[0] , zoom: 18});
+
 	const containerStyle = {
 		height: '100vh'
 	};
@@ -31,7 +23,7 @@ function MyMap() {
 		googleMapsApiKey: key
 	});
 
-	let houses = useContext(DistrictContext).houses;
+	
   const onLoad = React.useCallback(function callback(map) {
 
   }, [])
@@ -47,7 +39,7 @@ function MyMap() {
 			<div className="col-9">
 				<GoogleMap
 					mapContainerStyle={containerStyle}
-					center={{lat: mapState.activeHouse.lat, lng: mapState.activeHouse.lng}}
+					center={{lat: mapState.activeHouse.latitude, lng: mapState.activeHouse.longitude}}
 					zoom={mapState.zoom}
 					onLoad={onLoad}
 					onUnmount={onUnmount}
@@ -58,16 +50,7 @@ function MyMap() {
 					<></>
 					{houses.length ? (
 						houses.map((house : House) => {
-							let iconUrl: string= '/house.png';
-							return <Marker key={house.id} 
-								position={{lat: house.latitude, lng: house.longitude}}
-								icon={{
-									url: iconUrl,
-									anchor: new google.maps.Point(25, 25),
-									scaledSize: new google.maps.Size(50, 50)
-								}}
-								onClick={() => onMarkerClick(house)}
-							/>
+							return <HouseMarker house={house}></HouseMarker> 
 						})): <></>
 					}
 				</GoogleMap>
