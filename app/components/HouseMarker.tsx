@@ -3,6 +3,7 @@ import houseMarkerStyles from './HouseMarker.css';
 import { House } from '@prisma/client';
 import { useState } from 'react';
 import { HouseViewData } from '~/dataStructures/HouseViewData';
+import { FilterData } from '~/context/serverModelContext';
 
 export class HouseDetails{
 	public lat: number;
@@ -14,43 +15,103 @@ export class HouseDetails{
 	}
 }
 
-function HouseMarker({view, onClick} : {view : HouseViewData, onClick: (view: HouseViewData)=>void}) {
+function HouseMarker({viewData: view, onClick, filter} : {viewData : HouseViewData, onClick: (view: HouseViewData)=>void, filter: FilterData}) {
 	let iconUrl: string= '/house.png';
-	let houseState : Interest = Interest.NotSet;
+	var view = new HouseViewData(view.house, view.houseHolds, view.solarPowerSystems);
 	view.houseHolds.forEach(houseHold => {
+		
 		if(houseHold.interest?.noInterest){
-			houseState = Interest.NoInterest;
+			view.interest.noInterest = view.interest.noInterest && true;
 		}
-		else if(houseHold.interest?.undecided){
-			houseState = Interest.Undecided;
-		} else if(houseHold.interest?.participateInProduction || houseHold.interest?.provideResources){
-			houseState = Interest.ProvideResources;
-		} else if(houseHold.interest?.electricity){
-			houseState = Interest.ReceiveElectricity;
-		} else if(houseHold.interest?.heat){
-			houseState = Interest.ReceiveHeat;
+		if(houseHold.interest?.undecided){
+			view.interest.undecided = view.interest.undecided || true;
+		} 
+		if(houseHold.interest?.participateInProduction || houseHold.interest?.provideResources){
+			view.interest.participateInProduction = view.interest.participateInProduction || true;
+		} 
+		
+		if(houseHold.interest?.electricity){
+			view.interest.receiveElectricity = view.interest.receiveElectricity || true;
+		} 
+		if(houseHold.interest?.heat){
+			view.interest.receiveHeat = view.interest.receiveHeat || true;
 		}
 	});
-	switch(houseState as Interest){
-		case Interest.NoInterest:
-			iconUrl = '/houseRed.png';
-			break;
-		case Interest.Undecided:
-			iconUrl = '/houseYellow.png';
-			break;
-		case Interest.ProvideResources:
-			iconUrl = '/houseGreen.png';
-			break;
-		case Interest.ReceiveElectricity:
-			iconUrl = '/houseBlue.png';
-			break;
-		case Interest.ReceiveHeat:
-			iconUrl = '/housePurple.png';
-			break;
-		case Interest.NotSet: 
-			iconUrl = '/house.png';
-			break;
+
+
+	if(view.interest.noInterest){	
+		iconUrl = '/houseRed.png';
 	}
+	else if(view.interest.undecided){
+		iconUrl = '/houseYellow.png';
+	}
+	else if(view.interest.participateInProduction || view.interest.provideResources){
+		iconUrl = '/houseGreen.png';
+	}
+	else if(view.interest.receiveElectricity){
+		iconUrl = '/houseBlue.png';
+	}
+	else if(view.interest.receiveHeat){
+		iconUrl = '/housePurple.png';
+	}
+	else{
+		iconUrl = '/house.png';
+	}
+
+	if(filter.filterHeatingAge){
+		iconUrl = '/house.png';
+		if(view.houseHolds.length > 0){
+			iconUrl = '/houseGrey.png';
+		}
+		if(view.interest.receiveHeat || view.interest.undecided){
+			iconUrl = '/houseGreen.png';
+			
+			if(filter.filterHeatingAge){
+				if(view.getOldestHeatingAge() >= 5){
+					iconUrl = '/housePurple.png';
+				}
+				if(view.getOldestHeatingAge() >= 10){
+					iconUrl = '/houseBlue.png';
+				}
+				if(view.getOldestHeatingAge() >= 15){
+					iconUrl = '/houseYellow.png';
+				}
+				if(view.getOldestHeatingAge() >= 20){
+					iconUrl = '/houseRed.png';
+				}
+			} 
+		}
+	} 
+	
+	if(filter.filterHeatConsumption){
+		iconUrl = '/house.png';
+		if(view.houseHolds.length > 0){
+			
+			iconUrl = '/houseGrey.png';
+			if(view.interest.receiveHeat || view.interest.undecided){
+				if(view.getMaxHeatConsumption() >= 20000){
+					iconUrl = '/houseRed.png';
+				}
+				else if(view.getMaxHeatConsumption() >= 15000){
+					iconUrl = '/houseYellow.png';
+				}
+				else if(view.getMaxHeatConsumption() >= 10000){
+					iconUrl = '/housePurple.png';
+				}
+				else if(view.getMaxHeatConsumption() >= 5000){
+					iconUrl = '/houseBlue.png';
+				}
+				else if(view.getMaxHeatConsumption() >= 0){
+					iconUrl = '/houseGreen.png';
+				}
+			}
+			
+		}
+		
+		
+	}
+	
+
 	
 	return <Marker key={view.house.id} 
 				position={{lat: view.house.latitude, lng: view.house.longitude}}
@@ -61,16 +122,6 @@ function HouseMarker({view, onClick} : {view : HouseViewData, onClick: (view: Ho
 				}}
 				onClick={() => onClick(view)}
 			/>
-}
-
-enum Interest {
-	NotSet,
-	NoInterest,
-	Undecided,
-	ParticipateInProduction,
-	ProvideResources,
-	ReceiveElectricity,
-	ReceiveHeat
 }
 
 export default HouseMarker;

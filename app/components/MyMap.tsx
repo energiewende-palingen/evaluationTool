@@ -2,19 +2,20 @@ import myMapStyles from './MyMap.css';
 import React, { useContext, useState } from 'react'
 import { ApiContext } from '~/context/apiContext';
 import { GoogleMap, useJsApiLoader, Marker, MapContext } from '@react-google-maps/api';
-import { DistrictContext } from '~/context/serverModelContext';
+import { District, DistrictContext, FilterData } from '~/context/serverModelContext';
 import HouseMarker from './HouseMarker';
 import { Outlet, useNavigate } from '@remix-run/react';
 import { HouseViewData } from '~/dataStructures/HouseViewData';
 
 
   
-function MyMap() {
+function MyMap({district} : {district : District}) {
 	const navigate = useNavigate();
-	let houses = useContext(DistrictContext).houses;
-	console.log(`houses: ${houses.length}`);
+	
+	let houses = district.houses;
+	
 	const [mapState, setMapState] = useState({activeHouse: houses[0] , zoom: 18});
-
+	
 	const onMarkerClick = (data : HouseViewData) => {
 		setMapState({activeHouse: data , zoom: 18});
 		navigate('/map/'+data.house.id);
@@ -39,8 +40,6 @@ function MyMap() {
   const onUnmount = React.useCallback(function callback(map) {
     
   }, [])
-
-  console.log(`active house: ${mapState.activeHouse.house.latitude} ${mapState.activeHouse.house.longitude}`);
   
   return isLoaded ? (
 	
@@ -57,7 +56,7 @@ function MyMap() {
 					<></>
 					{houses.length ? (
 						houses.map((viewData : HouseViewData) => {
-							return <HouseMarker view={viewData} onClick={onMarkerClick}></HouseMarker> 
+							return <HouseMarker key={viewData.house.id} viewData={viewData} filter={district.filter} onClick={onMarkerClick}></HouseMarker> 
 						})): <></>
 					}
 				</GoogleMap>

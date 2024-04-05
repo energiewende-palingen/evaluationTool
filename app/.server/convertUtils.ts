@@ -12,7 +12,7 @@ export async function getHouseViewForHouse(house : House) : Promise<HouseViewDat
 			houseId: house.id
 		}
 	});
-	
+
 	for(let houseHold of houseHolds){
 		let interest = await db.houseHoldInterest.findUnique({
 			where: {
@@ -32,7 +32,7 @@ export async function getHouseViewForHouse(house : House) : Promise<HouseViewDat
 		});
 
 		if(interest != null && consumption != null && comments != null){
-			houseHoldViews.push(new HouseHoldViewData(houseHold, interest, consumption, comments));
+			houseHoldViews.push(new HouseHoldViewData(houseHold, interest, consumption, comments, houseHold.heatingSystemAge));
 		}
 	}
 

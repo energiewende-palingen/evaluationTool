@@ -6,6 +6,7 @@ import { ApiContext, ApiData } from '~/context/apiContext';
 import { db } from '~/.server/db';
 import { HouseViewData } from '~/dataStructures/HouseViewData';
 import { getHouseViewForHouse } from '~/.server/convertUtils';
+import { useState } from 'react';
 
 export async function loader({params}) {
 	let houses = await db.house.findMany();
@@ -27,18 +28,44 @@ export async function loader({params}) {
 export default function ShowMap() {
 	
 	const data = JSON.parse(useLoaderData());
-	console.log(data);
+	const [district, setDistrict] = useState<District> (new District(data.houses));
+	const [reload, setReload] = useState(false);
 	const apiData = new ApiData(data.googleApiKey);
-	const district = new District(data.houses);
+	
+	function setHeatConsumptionFilter(): void {
+		resetAllFilter();
+		district.filter.filterHeatConsumption=true;
+		setDistrict(district); 
+		setReload(!reload);
+	}
+
+	function setHeatingAgeFilter(): void {
+		resetAllFilter();
+		district.filter.filterHeatingAge=true;
+		setDistrict(district); 
+		setReload(!reload);
+	}
+
+	function resetAllFilter(): void {
+		district.filter.filterHeatConsumption=false;
+		district.filter.filterHeatingAge=false;
+		setDistrict(district); 
+		setReload(!reload);
+	}
 	return (
 	<main>
 		<ApiContext.Provider value={apiData}>
-			<DistrictContext.Provider value={district}>
-					<div className="row">
-						<div className="col"><MyMap /></div>
-						<div className="col"><Outlet /></div>
-					</div>
-			</DistrictContext.Provider>
+			
+				<div className="row">
+					<div className="col"><MyMap district={district}/></div>
+					<div className="col"><Outlet /></div>
+				</div>
+				<div>
+					<button onClick={resetAllFilter}>Alle</button>
+					<button onClick={setHeatingAgeFilter}>Heizungs Alter</button>
+					<button onClick={setHeatConsumptionFilter}>Wärmebedarf</button>
+				</div>
+			
 		</ApiContext.Provider>
 	</main>
 	);
