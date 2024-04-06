@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -21,8 +18,8 @@ model House {
   country           String
   latitude          Float
   longitude         Float
-  solarPowerSystems SolarPowerSystem[]
   houseHolds        HouseHold[]
+  solarPowerSystems SolarPowerSystem[]
 
   @@unique([street, houseNumber, postalCode, city, country])
 }
@@ -32,7 +29,6 @@ model HouseHold {
   createdAt              DateTime             @default(now())
   updatedAt              DateTime             @updatedAt
   houseId                String
-  house                  House                @relation(fields: [houseId], references: [id])
   name                   String?
   lastName               String?
   email                  String?
@@ -44,10 +40,11 @@ model HouseHold {
   heatedArea             Int?
   heatingSystemAge       Int?
   houseHoldInterestId    String               @unique
-  interest               HouseHoldInterest    @relation(fields: [houseHoldInterestId], references: [id])
-  consumption            HouseHoldConsumption @relation(fields: [houseHoldConsumptionId], references: [id])
   houseHoldConsumptionId String               @unique
   comments               Comment[]
+  consumption            HouseHoldConsumption @relation(fields: [houseHoldConsumptionId], references: [id])
+  interest               HouseHoldInterest    @relation(fields: [houseHoldInterestId], references: [id])
+  house                  House                @relation(fields: [houseId], references: [id])
 }
 
 model HouseHoldConsumption {
@@ -83,10 +80,10 @@ model Comment {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   userId      String
-  createdBy   User      @relation(fields: [userId], references: [id])
   houseHoldId String
-  houseHold   HouseHold @relation(fields: [houseHoldId], references: [id])
   comment     String
+  houseHold   HouseHold @relation(fields: [houseHoldId], references: [id])
+  createdBy   User      @relation(fields: [userId], references: [id])
 }
 
 model User {
@@ -104,11 +101,11 @@ model SolarPowerSystem {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   houseId         String
-  house           House    @relation(fields: [houseId], references: [id])
   installed       Boolean
   azimuth         Int
   roofTilt        Int
   roofSize        Int
   installedPower  Int
   batteryCapacity Int
+  house           House    @relation(fields: [houseId], references: [id])
 }
