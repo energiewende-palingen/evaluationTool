@@ -6,3 +6,5 @@ public/build
 .env
 
 *.sqlite
+backup.json
+app/data

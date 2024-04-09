@@ -19,9 +19,14 @@ function HouseDetailView({data} : {data : HouseViewData}){
 	}
 	
 	let heatingType : string = 'Nicht bekannt';
-	let heatConsumption : number | null = 0;
+	let heatConsumption : number = 0;
+	let heatKwhConsumption : number = 0;
 	let solarkwP : number = 0;
 	let roofSize : number = 0;
+	let heatConsumptionClass : string = "";
+	let heatedAreaClass : string = "";
+	let heatConsumptionPerQm : number = 0;
+	let sumHeatedArea : number = 0;
 	
 	for(let solarPowerSystem of data.solarPowerSystems){
 		solarkwP += solarPowerSystem.installedPower;
@@ -31,9 +36,21 @@ function HouseDetailView({data} : {data : HouseViewData}){
 	let sumHeatConsumption : number = 0;
 	let sumElectricityConsumption : number = 0;
 	for(let houseHold of data.houseHolds){
-		sumHeatConsumption += getHeatConsumptionForHouseHold(houseHold);
+		let heatConsumption = getHeatConsumptionForHouseHold(houseHold)* houseHold.consumption.convertToKwhFactor;
+		if(heatConsumption == 0){
+			heatConsumptionClass = "table-danger";
+			heatConsumption = 130 * ( houseHold.houseHold.heatedArea? houseHold.houseHold.heatedArea : 0 ) ;
+		}
+		sumHeatConsumption += heatConsumption;
+		if(houseHold.houseHold.heatedArea == null || houseHold.houseHold.heatedArea == 0){
+			heatedAreaClass = "table-danger";
+			sumHeatedArea += 120;
+		} else {
+			sumHeatedArea += houseHold.houseHold.heatedArea;
+		}
 		sumElectricityConsumption += houseHold.consumption.electricityConsumption? houseHold.consumption.electricityConsumption : 0;
 	}
+	heatConsumptionPerQm = Math.round(sumHeatConsumption / sumHeatedArea);
 
 	if(selectedHouseHold != undefined){
 		if(selectedHouseHold.consumption.usesWoodForHeat){
@@ -49,7 +66,8 @@ function HouseDetailView({data} : {data : HouseViewData}){
 		else if(selectedHouseHold.consumption.usesElectricityForHeat){
 			heatingType = 'Strom'
 		}
-		heatConsumption = getHeatConsumptionForHouseHold(selectedHouseHold);
+		heatConsumption = getHeatConsumptionForHouseHold(selectedHouseHold)
+		heatKwhConsumption = heatConsumption * selectedHouseHold.consumption.convertToKwhFactor;
 	}
 
 	return (
@@ -59,12 +77,19 @@ function HouseDetailView({data} : {data : HouseViewData}){
 				<tbody>
 					<tr>
 						<td scope="col-3">Stromverbrauch</td>
-						<td scope="col">{sumElectricityConsumption}</td>
+						<td scope="col">{sumElectricityConsumption} kwh</td>
 					</tr>
 					<tr>
 						<td scope="col-3">Wärmeverbrauch</td>
-						<td scope="col">{sumHeatConsumption}</td>
+						{sumHeatConsumption > 0}
+						<td scope="col" className={heatConsumptionClass}>{sumHeatConsumption} kwh</td>
 					</tr>
+					<tr>
+						<td scope="col-3">Energieklasse</td>
+						{sumHeatConsumption > 0}
+						<td scope="col" className={heatedAreaClass}>{heatConsumptionPerQm} kwh/qm </td>
+					</tr>
+					
 				</tbody>
 			</table>
 			<h2>Haushalte</h2>
@@ -183,8 +208,16 @@ function HouseDetailView({data} : {data : HouseViewData}){
 								<td scope="col">{heatingType}</td>
 							</tr>
 							<tr>
-								<td scope="col-3">Wärmebedarf</td>
+								<td scope="col-3">Verbrauch</td>
 								<td scope="col">{heatConsumption}</td>
+							</tr>
+							<tr>
+								<td scope="col-3">Wärmebedarf</td>
+								<td scope="col">{heatKwhConsumption} kwh</td>
+							</tr>
+							<tr>
+								<td scope="col-3">Heizfläche</td>
+								<td scope="col">{selectedHouseHold.houseHold.heatedArea} qm</td>
 							</tr>
 						</tbody>
 					</table>
@@ -194,7 +227,8 @@ function HouseDetailView({data} : {data : HouseViewData}){
 						<h2>Haushalt anpassen</h2>
 						<label htmlFor="heatConsumption">Wärmebedarf</label>
 						<input name="heatConsumption" type="text" />
-						
+						<label htmlFor="kwhConversion">KwH Umrechnung</label>
+						<input name="kwhConversion" type="text" />
 						<input name="houseHoldId" type="hidden" value={selectedHouseHold.houseHold.id}/>
 						<input name="formType" type="hidden" value={FormType.UpdateHouseHold}/>
 						<button type="submit" >Update</button>
@@ -283,6 +317,14 @@ export enum FormType{
 	UpdateHouseHold
 
 }
+
+function getHeatConsumptionPerQmForHouseHold(houseHold : HouseHoldViewData) : number {
+	var consumption = getHeatConsumptionForHouseHold(houseHold);
+	if(consumption == 0 || houseHold.houseHold.heatedArea == null ||  houseHold.houseHold.heatedArea == 0){
+		return 130;
+	}
+	return consumption / houseHold.houseHold.heatedArea;
+}
 function getHeatConsumptionForHouseHold(houseHold : HouseHoldViewData) : number {
 	let heatConsumption : number = 0;
 	
@@ -297,6 +339,9 @@ function getHeatConsumptionForHouseHold(houseHold : HouseHoldViewData) : number 
 	else if(houseHold.consumption.usesElectricityForHeat){
 		
 		heatConsumption = houseHold.consumption.heatConsumptionElectricity? houseHold.consumption.heatConsumptionElectricity : 0;
+	}
+	else if(houseHold.consumption.usesWoodForHeat){
+		heatConsumption = houseHold.consumption.heatConsumptionWood? houseHold.consumption.heatConsumptionWood : 0;
 	}
 	return heatConsumption;
 }

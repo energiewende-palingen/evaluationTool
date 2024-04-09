@@ -21,14 +21,14 @@ export class HouseViewData{
 		this.house = house;
 		this.houseHolds = houseHolds;
 		this.solarPowerSystems = solarPowerSystems;
-		console.log(this.getOldestHeatingAge());
 	}
 
 	public getOldestHeatingAge() : number{
 		let oldestHeatingAge = 0;
 		this.houseHolds.forEach(houseHold => {
-			if(houseHold.heatingAge > oldestHeatingAge){
-				oldestHeatingAge = houseHold.heatingAge;
+			let age = houseHold.houseHold.heatingSystemAge;
+			if( age != null &&  age > oldestHeatingAge){
+				oldestHeatingAge = age;
 			}
 		});
 		return oldestHeatingAge;

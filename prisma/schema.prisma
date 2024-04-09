@@ -59,6 +59,7 @@ model HouseHoldConsumption {
   heatConsumptionOil         Int?
   heatConsumptionElectricity Int?
   otherHeatingSystem         String?
+  convertToKwhFactor		 Float 	@default(1.0)
   houseHold                  HouseHold?
 }
 

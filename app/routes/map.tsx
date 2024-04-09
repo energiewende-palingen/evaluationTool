@@ -7,6 +7,8 @@ import { db } from '~/.server/db';
 import { HouseViewData } from '~/dataStructures/HouseViewData';
 import { getHouseViewForHouse } from '~/.server/convertUtils';
 import { useState } from 'react';
+import { ServerUtils } from '~/.server/ServerUtils';
+import { ActionFunctionArgs } from '@remix-run/node';
 
 export async function loader({params}) {
 	let houses = await db.house.findMany();
@@ -23,6 +25,22 @@ export async function loader({params}) {
 		googleApiKey: process.env.GOOGLE_MAPS_API_KEY,
 		houses : houseViews,
 	});
+}
+
+export async function action({request,}: ActionFunctionArgs) {
+	const formData = await request.formData();
+	let type = formData.get("formType");
+	if(type == "BackupDB"){
+		let serverUtils = new ServerUtils();
+		serverUtils.createBackup();
+	}
+	if(type == "RestoreDB"){
+		let serverUtils = new ServerUtils();
+		await serverUtils.restoreDatabase();
+	}
+
+	return null;
+	
 }
 
 export default function ShowMap() {
@@ -64,6 +82,16 @@ export default function ShowMap() {
 					<button onClick={resetAllFilter}>Alle</button>
 					<button onClick={setHeatingAgeFilter}>Heizungs Alter</button>
 					<button onClick={setHeatConsumptionFilter}>Wärmebedarf</button>
+				</div>
+				<div>
+				<form method="post" action={`/map/`}>
+					<input type="hidden" name="formType" value="BackupDB"/>
+					<button type="submit" >Backup DB</button>
+				</form>
+				<form method="post" action={`/map/`}>
+					<input type="hidden" name="formType" value="RestoreDB"/>
+					<button type="submit" >Restore DB</button>
+				</form>
 				</div>
 			
 		</ApiContext.Provider>

@@ -16,7 +16,7 @@ export const loader = async ({ params }) => {
 		}
 	});
 	
-	let view;
+	let view = null;
 	if(house != null){
 		view = await getHouseViewForHouse(house);
 	}
@@ -26,10 +26,10 @@ export const loader = async ({ params }) => {
   };
 
 export async function action({request,}: ActionFunctionArgs) {
-	console.log("action houseHold");
+	
 	const formData = await request.formData();
 	var data = Object.fromEntries(formData);
-	console.log(data);
+	
 	let formType = parseInt(data["formType"] as string) ;
 	switch(formType){
 		case FormType.UpdateSolarPowerSystem:
@@ -71,6 +71,7 @@ export default function MapDetails() {
 async function handleUpdateHouseHold(formData: FormData) {
 	var data = Object.fromEntries(formData);
 	let heatConsumption : number = parseInt(data['heatConsumption'] as string);
+	let kwhConversion : number = parseFloat(data['kwhConversion'] as string);
 	let houseHoldId : string = data['houseHoldId'] as string;
 	console.log(`selected houseHold: ${houseHoldId}`);
 	var dbHouseHold = await db.houseHold.findUnique({
@@ -80,28 +81,50 @@ async function handleUpdateHouseHold(formData: FormData) {
 	});
 	
 	if(dbHouseHold != null){
-		console.log("household matches");
 		var dbConsumption = await db.houseHoldConsumption.findUnique({
 			where: {
 				id: dbHouseHold.houseHoldConsumptionId
 			}
 		});
 
-		if(houseHoldId != undefined && heatConsumption != undefined){
-			console.log("household & consumption matches");
-			if(dbConsumption != null && dbConsumption.usesGasForHeat){
-				console.log("uses gas");
+		if(houseHoldId != undefined && !isNaN(heatConsumption)){
+			let dataContent; 
+			dataContent = {heatConsumptionGas: heatConsumption};
+			if(dbConsumption != null ){
+				if(dbConsumption.usesGasForHeat){
+					dataContent = {heatConsumptionGas: heatConsumption};
+				}
+				if(dbConsumption.usesElectricityForHeat){
+					dataContent = {heatConsumptionElectricity: heatConsumption};
+				}
+				if(dbConsumption.usesOilForHeat){
+					dataContent = {heatConsumptionOil: heatConsumption};
+				}
+				if(dbConsumption.usesWoodForHeat){
+					dataContent = {heatConsumptionWood: heatConsumption};
+				}
+				console.log("Update Heat Consumption: " + heatConsumption);
+				const updated = await db.houseHoldConsumption.update({
+					where: {
+						id: dbHouseHold.houseHoldConsumptionId
+					},
+					data: dataContent
+				});
+			}
+		}
+		if(houseHoldId != undefined && isNaN(kwhConversion)){
+			if(dbConsumption != null ){
+				console.log("Update Heat Conversion: " + kwhConversion);
 				const updated = await db.houseHoldConsumption.update({
 					where: {
 						id: dbHouseHold.houseHoldConsumptionId
 					},
 					data: {
-						heatConsumptionGas: heatConsumption,
-						heatConsumptionWood : heatConsumption
+						convertToKwhFactor: kwhConversion
 					}
 				});
-				console.log("updated" + updated.heatConsumptionGas);
 			}
+			
 		}
 		
 	}
@@ -118,7 +141,7 @@ async function handleUpdateSolorPowerSystem(formData: FormData) {
 	
 
 	let solarId : string = data['solarId'] as string;
-	console.log(`selected houseHold: ${solarId}`);
+	
 	var dbSolarPowerSystem = await db.solarPowerSystem.findUnique({
 		where: {
 			id: solarId
