@@ -1,36 +1,13 @@
-# Welcome to Remix + Vite!
+# Evaluation Tool for Citizien Initiatives 
 
-📖 See the [Remix docs](https://remix.run/docs) and the [Remix Vite docs](https://remix.run/docs/en/main/future/vite) for details on supported features.
+## Disclaimer 
+This tool is an very early stage of development. It is developed and directly used for a small heat map in germany. 
+Current tech-state is not production ready. 
 
-## Development
+## Purpose of this tool 
 
-Run the Vite dev server:
+This tool should allow to easily collect data about the heat and power consumption for a specific area and visualize them on a map. This should allow for easy evaluation of potential heat or power networks
 
-```shellscript
-npm run dev
-```
+## Contribution
 
-## Deployment
-
-First, build your app for production:
-
-```sh
-npm run build
-```
-
-Then run the app in production mode:
-
-```sh
-npm start
-```
-
-Now you'll need to pick a host to deploy it to.
-
-### DIY
-
-If you're familiar with deploying Node applications, the built-in Remix app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-- `build/server`
-- `build/client`
+If you want to use or continue develop the tool feel free to reach out.
