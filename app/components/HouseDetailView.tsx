@@ -6,13 +6,14 @@ import SolarPowerSystemView from './SolarPowerSystemView'
 import { useState } from 'react';
 import HouseHoldDetailView from './HouseHoldDetailView';
 
-
 function HouseDetailView({data} : {data : HouseViewData}){
 	
 	let houseView = new HouseViewData(data.house, data.houseHolds, data.solarPowerSystems);
 	const [selectedHouseHold, setSelectedHouseHold] = useState<HouseHoldViewData |undefined> ();
 	const [selectedSolorPowerSystem, setSelectedSolarPowerSystem] = useState<SolarPowerSystem | undefined> ();
 	const [showSolarPowerSystems, setEditMode] = useState<Boolean>(false);
+
+	const [editSolarPowerSystems, setEditSolarPowerSystems] = useState<boolean>(false);
 	
 	function selectHouseHold(houseHold: HouseHoldViewData) {
 		setSelectedHouseHold(houseHold);
@@ -26,14 +27,19 @@ function HouseDetailView({data} : {data : HouseViewData}){
 	function toggleShowSolar(){
 		setEditMode(!showSolarPowerSystems);
 	}
+
+	function toggleEditSolarPowerSystems(){
+		setEditSolarPowerSystems(!editSolarPowerSystems);
+	}
 	
 	houseView.calculateSums();
 
 	let showSolar = showSolarPowerSystems ? "" : "hidden";
 	let showHouseData = showSolarPowerSystems ? "hidden" : "";
+	let currentSolarPowerSystem : string = "";
 
 	return (
-		<div>
+		<div id="mainDiv">
 			<h1>{houseView.house.street}{houseView.house.houseNumber}</h1>
 			<div className="btn-group-toggle" data-toggle="buttons">
                 <label className="btn btn-secondary active">
@@ -98,7 +104,7 @@ function HouseDetailView({data} : {data : HouseViewData}){
 					</tbody>
 				</table>
 			</div>
-			<div className={showSolar}>
+			<div className={showSolar} id="showSolar">
 				<h2>Summierte Erzeugungs Kapazität</h2>
 				<table className='table'>
 					<thead>
@@ -124,33 +130,45 @@ function HouseDetailView({data} : {data : HouseViewData}){
 				</table>
 				<h2>Einzelne Solaranlagen</h2>
 				
-				<table className='table'>
+				<div className="btn-group-toggle" data-toggle="buttons">
+					<label className="btn btn-secondary active">
+						<input type="checkbox" autoComplete="off" onClick={toggleEditSolarPowerSystems} /> Edit
+					</label>
+            	</div>    
+				
+				<div id="outerForm">
+					<form method="post" id="modifySolarpowerSystem" action={`/map/${houseView.house.id}`}>
+						<input name="solarId" type="hidden" value={selectedSolorPowerSystem?.id}/>
+						<input name="formType" type="hidden" value={FormType.UpdateSolarPowerSystem}/>
+					</form>
+				</div>
+
+				<table className='table table-hover'>
 					<thead>
 						<tr>
-							<th scope="col">Installierte kwP</th>
-							<th scope="col">Dachfläche</th>
-							<th scope="col">Dachneigung</th>
-							<th scope="col">Dachausrichtung</th>
-							<th scope="col">Batterie Kapazität</th>
-							<th scope="col">Gebaut</th>
-							
+							<th scope="col">#</th>
+							<th scope="col">Installierte Leistung</th>
 						</tr>
 					</thead>
 					<tbody>
-					{houseView.solarPowerSystems.map((solarPowerSystem, index) => {
-						let highlightClass = "";
-						if(solarPowerSystem.id === selectedSolorPowerSystem?.id){
-							highlightClass = "table-active";
+						{houseView.solarPowerSystems.map((solarPowerSystem, index) => {
+							let highlightClass = "";
+							if(solarPowerSystem.id === selectedSolorPowerSystem?.id){
+								highlightClass = "table-active";
+							}
+							return (	
+								<tr className={highlightClass} key={index} onClick={() => setSelectedSolarPowerSystem(solarPowerSystem)}>
+									<th scope="row">{index + 1}</th>
+									<td>{solarPowerSystem.installedPower}</td>
+								</tr>
+								);
+							})
 						}
-						return (
-							
-								<SolarPowerSystemView data={solarPowerSystem} onClick={selectSolarPowerSystem} highlightClass={highlightClass} houseId={houseView.house.id}></SolarPowerSystemView>
-							);
-						})
-					}
 					</tbody>
 				</table>
-			</div>
+				<SolarPowerSystemView data={selectedSolorPowerSystem} houseId={houseView.house.id} editMode={editSolarPowerSystems}></SolarPowerSystemView>
+					
+			</div>	
 			<div className={showHouseData}>
 				{selectedHouseHold != undefined ? 
 					<HouseHoldDetailView selectedHouseHold={selectedHouseHold} houseView={houseView}></HouseHoldDetailView>			
@@ -158,10 +176,8 @@ function HouseDetailView({data} : {data : HouseViewData}){
 					<h2>Kein Haushalt ausgewählt</h2>
 				}
 			</div>
-			
-			
 		</div>
-		);
+	);
 			
 }
 

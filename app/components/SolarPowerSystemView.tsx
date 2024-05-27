@@ -1,97 +1,112 @@
 import { SolarPowerSystem } from "@prisma/client";
 import solarPowerSystemStyles from './SolarPowerSystemView.css'
 import { FormType } from "./HouseDetailView";
+import { useState } from "react";
 
-function SolarPowerSystemView({data, onClick, highlightClass, houseId} : 
-    {   data : SolarPowerSystem,
-        onClick: (view: SolarPowerSystem)=>void,
-        highlightClass : string,
-        houseId : string
+function SolarPowerSystemView({data, houseId, editMode} : 
+    {   data : SolarPowerSystem | undefined,
+        houseId : string,
+        editMode : boolean
     }
 ){
 
-    let editMode = false;
+    if(data == undefined){
+        return (<></>);
+    }
+
+    function getCheckbox(checked : boolean, readOnly : string){
+        if ( checked) {
+            return (
+                <input type="checkbox" className={readOnly} name="installed" checked form="modifySolarpowerSystem"></input>
+            )    
+        }
+        return (
+            <input type="checkbox" className={readOnly} name="installed" form="modifySolarpowerSystem"></input>
+        )            
+    }
+
+    function submitSolarUpdate(){
+        document.forms["modifySolarpowerSystem"].requestSubmit();
+    }
+
     let addMode = false;
     if(addMode){
         <div>
-        <h2>Solaranlage hinzufügen</h2>
-        <form method="post" action={`/map/${houseId}`}>
-            <div className="form-group">
-                <label htmlFor="installedPower">Installierte Leistung</label>
-                <input name="installedPower" className="form-control" type="text" />
-            </div>
-            <div className="form-group">
-                <label htmlFor="roofTilt">Dachneigung</label>
-                <input name="roofTilt" className="form-control" type="text" />
-            </div>
-            <div className="form-group">
-                <label htmlFor="azimuth">Ausrichtung</label>
-                <input name="azimuth" className="form-control" type="text" />
-            </div>
-            <div className="form-group">
-                <label htmlFor="roofSize">Dachfläche</label>
-                <input name="roofSize" className="form-control" type="text" />
-            </div>
-            <div className="form-group">
-                <label htmlFor="batteryCapacitiy">Batterie</label>	
-                <input name="batteryCapacity" className="form-control" type="text" />
-            </div>
-            <div className="form-group">
-                <input name="installed" className="form-check-input" type="checkbox" />
-                <label htmlFor="installed" className="form-check-label">Installiert</label>
-            </div>
+        <form method="post" id="modifySolarpowerSystem" action={`/map/${houseId}`}>
             <input name="houseId" type="hidden" value={houseId}/>
             <input name="formType" type="hidden" value={FormType.AddSolorPowerSystem}/>
             <button type="submit" >Hinzufügen</button>
         </form>
     </div>
-
-    } else if(editMode){
-        <div>
-            <h2>Solaranlage anpassen</h2>
-            <form method="post" action={`/map/${houseId}`}>
-                <div className="form-group">
-                    <label htmlFor="installedPower">Installierte Leistung</label>
-                    <input name="installedPower" className="form-control" type="text" placeholder={data.installedPower.toString()} />
+    }  else {
+        let readOnly = editMode ?  "" : "read-only";
+        return (
+            <div className="container">
+                <table className='table'>
+                    <thead>
+                        <tr>
+                            <th scope="col-3">Verbrauch</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td scope="col-3">Installierte Leistung</td>
+                            <td scope="col">
+                                <input type="text" className={readOnly} name="installedPower" form="modifySolarpowerSystem" placeholder={data.installedPower.toString()}></input>
+                            </td>
+                            <td scope="col-1">kwp</td>
+                        </tr>
+                        <tr>
+                            <td scope="col-3">Dachneigung</td>
+                            <td scope="col">
+                                <input type="text" className={readOnly}name="roofTilt" form="modifySolarpowerSystem" placeholder={data.roofTilt.toString()}></input>
+                            </td>
+                            <td scope="col-1">°</td>
+                        </tr>
+                        <tr>
+                            <td scope="col-3">Dachneigung</td>
+                            <td scope="col">
+                                <input type="text" className={'col ' + readOnly} name="roofSize" form="modifySolarpowerSystem" placeholder={data.roofSize.toString()}></input>
+                            </td>
+                            <td scope="col-1">qm</td>
+                        </tr>
+                        <tr>
+                            <td scope="col-3">Dachneigung</td>
+                            <td scope="col">
+                                <input type="text" className={readOnly} name="roofTilt" form="modifySolarpowerSystem" placeholder={data.roofTilt.toString()}></input>
+                            </td>
+                            <td scope="col-1">°</td>
+                        </tr>
+                        <tr>
+                            <td scope="col-3">Ausrichtung</td>
+                            <td scope="col">
+                                 <input type="text" className={readOnly} name="azimuth" form="modifySolarpowerSystem" placeholder={data.azimuth.toString()}></input> 
+                            </td>
+                            <td scope="col-1">°</td>
+                        </tr>
+                        <tr>
+                            <td scope="col-3">Batterie Kapazität</td>
+                            <td scope="col">
+                                <input type="text" className={'col ' + readOnly} name="batteryCapacity" form="modifySolarpowerSystem" placeholder={data.batteryCapacity.toString()}></input>
+                            </td>
+                            <td scope="col-1">kwh</td>
+                        </tr>
+                        <tr>
+                            <td scope="col-3">Batterie Kapazität</td>
+                            <td scope="col">
+                                {getCheckbox(data.installed, readOnly) }
+                            </td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+                <div className="row">
+                    <button className="col-1 btn btn-danger">X</button>
+                    <button className="col btn btn-secondary">Update</button>
                 </div>
-                <div className="form-group">
-                    <label htmlFor="roofTilt">Dachneigung</label>
-                    <input name="roofTilt" className="form-control" type="text" placeholder={data.roofTilt.toString()}/>
-                </div>
-                <div className="form-group">
-                    <label htmlFor="azimuth">Ausrichtung</label>
-                    <input name="azimuth" className="form-control" type="text" placeholder={data.azimuth.toString()} />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="roofSize">Dachfläche</label>
-                    <input name="roofSize" className="form-control" type="text" placeholder={data.roofSize.toString()}/>
-                </div>
-                <div className="form-group">
-                    <label htmlFor="batteryCapacitiy">Batterie</label>	
-                    <input name="batteryCapacity" className="form-control" type="text" placeholder={data.batteryCapacity.toString()}/>
-                </div>
-                <div className="form-group">
-                    <input name="installed" className="form-check-input" type="checkbox" placeholder={data.installed?"on": "off"}/>
-                    <label htmlFor="installed" className="form-check-label">Installiert</label>
-                </div>
-                <input name="solarId" type="hidden" value={data.id}/>
-                <input name="formType" type="hidden" value={FormType.UpdateSolarPowerSystem}/>
-                <button type="submit" >Update</button>
-            </form>
-        </div>
-    } else {
-        {
-            return (
-                    <tr className={highlightClass} key={data.id} onClick={() => onClick(data)}>
-                            <td>{data.installedPower} kWp</td>
-                            <td>{data.roofSize} qm</td>
-                            <td>{data.roofTilt} °</td>
-                            <td>{data.azimuth} °</td>
-                            <td>{data.batteryCapacity} kwh</td>
-                            <td>{data.installed? "yes" : "no"}</td>
-                    </tr>
-            )
-        }
+            </div>
+        )
     }
 }
 export default SolarPowerSystemView;
