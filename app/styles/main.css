@@ -9,3 +9,17 @@ h1 {
 .mapOverview{
 	display: flex;
 }
+
+.read-only{
+	pointer-events: none; 
+	border: none; 
+}
+
+.read-only::placeholder{
+	color: black;
+	opacity: 1;
+}
+
+.hidden {
+	display: none;
+}

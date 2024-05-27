@@ -150,7 +150,13 @@ export enum FormType{
 	UpdateSolarPowerSystem,
 	AddSolorPowerSystem,
 	UpdateHouseHold
+}
 
+export enum HeatingType{
+	Gas,
+	Öl,
+	Holz,
+	Andere
 }
 
 

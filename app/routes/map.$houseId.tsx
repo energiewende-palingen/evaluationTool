@@ -37,8 +37,8 @@ export async function action({request,}: ActionFunctionArgs) {
 			await handleUpdateSolorPowerSystem(formData);
 			break;
 		case FormType.UpdateHouseHold:
-			console.log("update house hold");
 			await handleUpdateHouseHold(formData);
+			console.log("update house hold");
 			break;
 		case FormType.AddSolorPowerSystem:
 			console.log("add solar power system");
@@ -48,8 +48,6 @@ export async function action({request,}: ActionFunctionArgs) {
 			console.log("no form type for: " + formType);
 	
 	}
-	
-	
 	
 	return null;
 }
@@ -70,8 +68,17 @@ export default function MapDetails() {
 
 async function handleUpdateHouseHold(formData: FormData) {
 	var data = Object.fromEntries(formData);
-	let heatConsumption : number = parseInt(data['heatConsumption'] as string);
-	let kwhConversion : number = parseFloat(data['kwhConversion'] as string);
+	let heatConsumptionGas : number | null = parseInt(data['heatConsumptionGas'] as string);
+	let heatConsumptionOil : number | null = parseInt(data['heatConsumptionOil'] as string);
+	let heatConsumptionWood : number |null = parseInt(data['heatConsumptionWood'] as string);
+	let heatConsumptionElectricity : number | null = parseInt(data['heatConsumptionElectricity'] as string);
+	let conversionFactorOil : number | null= parseFloat(data['kwHConversionOil'] as string);
+	let conversionFactorWood : number | null= parseFloat(data['kwHConversionWood'] as string);
+	let conversionFactorElectrictity : number | null= parseFloat(data['kwHConversionElectricity'] as string);
+	let heatingArea : number | null = parseInt(data['heatingArea'] as string);
+	let electricityConsumption : number | null = parseInt(data['electricityConsumption'] as string);
+
+
 	let houseHoldId : string = data['houseHoldId'] as string;
 	console.log(`selected houseHold: ${houseHoldId}`);
 	var dbHouseHold = await db.houseHold.findUnique({
@@ -79,52 +86,61 @@ async function handleUpdateHouseHold(formData: FormData) {
 			id: houseHoldId
 		}
 	});
+
+	
 	
 	if(dbHouseHold != null){
+		
+		heatingArea = isNaN(heatingArea) ? dbHouseHold?.heatedArea : heatingArea;
+
+		await db.houseHold.update({
+			where: {
+				id: houseHoldId
+			},
+			data: {
+				heatedArea: heatingArea,
+			}
+		});
+
 		var dbConsumption = await db.houseHoldConsumption.findUnique({
 			where: {
 				id: dbHouseHold.houseHoldConsumptionId
 			}
 		});
 
-		if(houseHoldId != undefined && !isNaN(heatConsumption)){
-			let dataContent; 
-			dataContent = {heatConsumptionGas: heatConsumption};
+		if(houseHoldId != undefined){
+			
+			
 			if(dbConsumption != null ){
-				if(dbConsumption.usesGasForHeat){
-					dataContent = {heatConsumptionGas: heatConsumption};
-				}
-				if(dbConsumption.usesElectricityForHeat){
-					dataContent = {heatConsumptionElectricity: heatConsumption};
-				}
-				if(dbConsumption.usesOilForHeat){
-					dataContent = {heatConsumptionOil: heatConsumption};
-				}
-				if(dbConsumption.usesWoodForHeat){
-					dataContent = {heatConsumptionWood: heatConsumption};
-				}
-				console.log("Update Heat Consumption: " + heatConsumption);
-				const updated = await db.houseHoldConsumption.update({
+				electricityConsumption = isNaN(electricityConsumption)  ? dbConsumption.electricityConsumption : electricityConsumption;
+				heatConsumptionGas = isNaN(heatConsumptionGas) ? dbConsumption.heatConsumptionGas : heatConsumptionGas;
+				heatConsumptionOil = isNaN(heatConsumptionOil) ? dbConsumption.heatConsumptionOil : heatConsumptionOil;
+				heatConsumptionWood = isNaN(heatConsumptionWood) ? dbConsumption.heatConsumptionWood : heatConsumptionWood;
+				heatConsumptionElectricity = isNaN(heatConsumptionElectricity) ? dbConsumption.heatConsumptionElectricity : heatConsumptionElectricity;
+				conversionFactorElectrictity = isNaN(conversionFactorElectrictity) ? dbConsumption.convertToKwhElectricityFactor : conversionFactorElectrictity;
+				conversionFactorWood = isNaN(conversionFactorWood) ? dbConsumption.convertToKwhWoodFactor : conversionFactorWood;
+				conversionFactorOil = isNaN(conversionFactorOil) ? dbConsumption.convertToKwhOilFactor : conversionFactorOil;
+				
+
+				let dataContent = {
+					electricityConsumption: electricityConsumption,
+					heatConsumptionElectricity: heatConsumptionElectricity,
+					heatConsumptionGas: heatConsumptionGas,
+					heatConsumptionOil: heatConsumptionOil,
+					heatConsumptionWood: heatConsumptionWood,
+					convertToKwhElectricityFactor : conversionFactorElectrictity,
+					convertToKwhWoodFactor : conversionFactorWood,
+					convertToKwhOilFactor : conversionFactorOil
+				};
+
+				console.log("Update Consumption: " + dataContent.toString());
+				await db.houseHoldConsumption.update({
 					where: {
 						id: dbHouseHold.houseHoldConsumptionId
 					},
 					data: dataContent
 				});
 			}
-		}
-		if(houseHoldId != undefined && isNaN(kwhConversion)){
-			if(dbConsumption != null ){
-				console.log("Update Heat Conversion: " + kwhConversion);
-				const updated = await db.houseHoldConsumption.update({
-					where: {
-						id: dbHouseHold.houseHoldConsumptionId
-					},
-					data: {
-						convertToKwhFactor: kwhConversion
-					}
-				});
-			}
-			
 		}
 		
 	}
@@ -137,8 +153,6 @@ async function handleUpdateSolorPowerSystem(formData: FormData) {
 	let roofTilt : number = parseInt(data['roofTilt'] as string);
 	let batteryCapacity : number = parseInt(data['batteryCapacity'] as string);
 	let installed : boolean = data['installed'] == 'true';
-
-	
 
 	let solarId : string = data['solarId'] as string;
 	

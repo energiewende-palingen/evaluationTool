@@ -48,19 +48,21 @@ model HouseHold {
 }
 
 model HouseHoldConsumption {
-  id                         String     @id @default(uuid())
-  electricityConsumption     Int?
-  usesGasForHeat             Boolean?
-  usesWoodForHeat            Boolean?
-  usesOilForHeat             Boolean?
-  usesElectricityForHeat     Boolean?
-  heatConsumptionGas         Int?
-  heatConsumptionWood        Int?
-  heatConsumptionOil         Int?
-  heatConsumptionElectricity Int?
-  otherHeatingSystem         String?
-  convertToKwhFactor		 Float 	@default(1.0)
-  houseHold                  HouseHold?
+  id                            String     @id @default(uuid())
+  electricityConsumption        Int?
+  usesGasForHeat                Boolean?
+  usesWoodForHeat               Boolean?
+  usesOilForHeat                Boolean?
+  usesElectricityForHeat        Boolean?
+  heatConsumptionGas            Int?
+  heatConsumptionWood           Int?
+  heatConsumptionOil            Int?
+  heatConsumptionElectricity    Int?
+  otherHeatingSystem            String?
+  convertToKwhWoodFactor        Float      @default(1.0)
+  convertToKwhOilFactor         Float      @default(1.0)
+  convertToKwhElectricityFactor Float      @default(1.0)
+  houseHold                     HouseHold?
 }
 
 model HouseHoldInterest {

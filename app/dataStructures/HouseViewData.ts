@@ -81,13 +81,13 @@ export class HouseViewData{
 
 	public calculateSums(){
 		for(let houseHold of this.houseHolds){
-			let heatConsumption = houseHold.getHeatConsumptionForHouseHold()* houseHold.consumption.convertToKwhFactor;
+			let heatConsumption = houseHold.getHeatConsumptionForHouseHoldInKwh();
 			if(heatConsumption == 0){
 				this.heatConsumptionClass = "table-danger";
 				heatConsumption = 130 * ( houseHold.houseHold.heatedArea? houseHold.houseHold.heatedArea : 0 ) ;
 			}
 			this.sumHeatConsumption += heatConsumption;
-			if(houseHold.houseHold.heatedArea == null || houseHold.houseHold.heatedArea == 0){
+			if(houseHold.houseHold.heatedArea == null || houseHold.houseHold.heatedArea == 0){
 				this.heatedAreaClass = "table-danger";
 				this.sumHeatedArea += 120;
 			} else {
