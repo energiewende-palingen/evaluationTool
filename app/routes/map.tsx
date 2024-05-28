@@ -9,6 +9,7 @@ import { getHouseViewForHouse } from '~/.server/convertUtils';
 import { useState } from 'react';
 import { ServerUtils } from '~/.server/ServerUtils';
 import { ActionFunctionArgs } from '@remix-run/node';
+import FilterView from '~/components/FilterView';
 
 export async function loader({params}) {
 	let houses = await db.house.findMany();
@@ -75,23 +76,12 @@ export default function ShowMap() {
 		<ApiContext.Provider value={apiData}>
 			
 				<div className="row">
-					<div className="col"><MyMap district={district}/></div>
+
+					<div className="col">
+						<FilterView resetAllFilter={resetAllFilter} setHeatingAgeFilter={setHeatingAgeFilter} setHeatConsumptionFilter={setHeatConsumptionFilter}></FilterView>
+						<MyMap district={district}/>
+					</div>
 					<div className="col"><Outlet /></div>
-				</div>
-				<div>
-					<button onClick={resetAllFilter}>Alle</button>
-					<button onClick={setHeatingAgeFilter}>Heizungs Alter</button>
-					<button onClick={setHeatConsumptionFilter}>Wärmebedarf</button>
-				</div>
-				<div>
-				<form method="post" action={`/map/`}>
-					<input type="hidden" name="formType" value="BackupDB"/>
-					<button type="submit" >Backup DB</button>
-				</form>
-				<form method="post" action={`/map/`}>
-					<input type="hidden" name="formType" value="RestoreDB"/>
-					<button type="submit" >Restore DB</button>
-				</form>
 				</div>
 			
 		</ApiContext.Provider>
