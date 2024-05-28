@@ -31,6 +31,16 @@ function HouseDetailView({data} : {data : HouseViewData}){
 	function toggleEditSolarPowerSystems(){
 		setEditSolarPowerSystems(!editSolarPowerSystems);
 	}
+
+	function submitSolarAdd(){
+        var elem = document.getElementById('solarUpdateType');
+        if(elem != null){
+            elem.value = FormType.AddSolorPowerSystem;
+            document.forms["modifySolarpowerSystem"].requestSubmit();
+        } else {
+            console.error("Cannot find element with id: solarUpdateType");
+        }
+    }
 	
 	houseView.calculateSums();
 
@@ -129,17 +139,11 @@ function HouseDetailView({data} : {data : HouseViewData}){
 					</tbody>
 				</table>
 				<h2>Einzelne Solaranlagen</h2>
-				
-				<div className="btn-group-toggle" data-toggle="buttons">
-					<label className="btn btn-secondary active">
-						<input type="checkbox" autoComplete="off" onClick={toggleEditSolarPowerSystems} /> Edit
-					</label>
-            	</div>    
-				
 				<div id="outerForm">
 					<form method="post" id="modifySolarpowerSystem" action={`/map/${houseView.house.id}`}>
 						<input name="solarId" type="hidden" value={selectedSolorPowerSystem?.id}/>
-						<input name="formType" type="hidden" value={FormType.UpdateSolarPowerSystem}/>
+						<input name="houseId" type="hidden" value={houseView.house.id}/>
+						<input name="formType" id="solarUpdateType" type="hidden" value={FormType.UpdateSolarPowerSystem}/>
 					</form>
 				</div>
 
@@ -166,6 +170,15 @@ function HouseDetailView({data} : {data : HouseViewData}){
 						}
 					</tbody>
 				</table>
+				<div className="row">
+					<div className="btn-group-toggle col" data-toggle="buttons">
+						<label className="btn btn-secondary active">
+							<input type="checkbox" autoComplete="off" onClick={toggleEditSolarPowerSystems} /> Edit
+						</label>
+					</div> 
+					<button className={"col btn btn-success"} onClick={submitSolarAdd}>Hinzufügen</button>
+				</div>
+				
 				<SolarPowerSystemView data={selectedSolorPowerSystem} houseId={houseView.house.id} editMode={editSolarPowerSystems}></SolarPowerSystemView>
 					
 			</div>	
@@ -182,9 +195,10 @@ function HouseDetailView({data} : {data : HouseViewData}){
 }
 
 export enum FormType{
-	UpdateSolarPowerSystem,
-	AddSolorPowerSystem,
-	UpdateHouseHold
+	UpdateSolarPowerSystem = 0,
+	AddSolorPowerSystem = 1,
+	UpdateHouseHold = 2,
+	RemoveSolarPowerSystem = 3
 }
 
 export enum HeatingType{

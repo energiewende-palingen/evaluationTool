@@ -29,8 +29,8 @@ export async function action({request,}: ActionFunctionArgs) {
 	
 	const formData = await request.formData();
 	var data = Object.fromEntries(formData);
-	
-	let formType = parseInt(data["formType"] as string) ;
+	var formTypeString =data["formType"] as string
+	let formType = parseInt(formTypeString);
 	switch(formType){
 		case FormType.UpdateSolarPowerSystem:
 			console.log("update solar power system");
@@ -42,7 +42,11 @@ export async function action({request,}: ActionFunctionArgs) {
 			break;
 		case FormType.AddSolorPowerSystem:
 			console.log("add solar power system");
-			await addSolorPowerSystem(formData);
+			await addSolarPowerSystem(formData);
+			break;
+		case FormType.RemoveSolarPowerSystem: 
+			console.log("remove solar power system");
+			await removeSolarPowerSystem(formData);
 			break;
 		default:
 			console.log("no form type for: " + formType);
@@ -145,6 +149,19 @@ async function handleUpdateHouseHold(formData: FormData) {
 		
 	}
 }
+
+async function removeSolarPowerSystem(formData : FormData){
+	var data = Object.fromEntries(formData);
+	let solarId : string = data['solarId'] as string;
+	await db.solarPowerSystem.delete(
+		{
+			where: {
+				id: solarId
+			}
+		}
+	);
+}
+
 async function handleUpdateSolorPowerSystem(formData: FormData) {
 	var data = Object.fromEntries(formData);
 	let installedPower : number = parseInt(data['installedPower'] as string);
@@ -152,7 +169,8 @@ async function handleUpdateSolorPowerSystem(formData: FormData) {
 	let azimuth : number = parseInt(data['azimuth'] as string);
 	let roofTilt : number = parseInt(data['roofTilt'] as string);
 	let batteryCapacity : number = parseInt(data['batteryCapacity'] as string);
-	let installed : boolean = data['installed'] == 'true';
+	console.log("Installed: " + data['installed']);
+	let installed : boolean = data['installed'] == 'on';
 
 	let solarId : string = data['solarId'] as string;
 	
@@ -192,11 +210,11 @@ async function handleUpdateSolorPowerSystem(formData: FormData) {
 	}
 }
 
-function addSolorPowerSystem(formData: FormData) {
+async function addSolarPowerSystem(formData: FormData) {
 	var formObject = Object.fromEntries(formData);
 	let houseId : string = formObject['houseId'] as string;
-
-	db.solarPowerSystem.create({
+	console.log("Add solar for house: " + houseId);
+	await db.solarPowerSystem.create({
 		data: {
 			installedPower: 0,
 			roofSize: 0,
