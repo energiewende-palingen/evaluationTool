@@ -5,8 +5,9 @@ import { HouseHoldViewData } from '~/dataStructures/HouseHoldViewData';
 import SolarPowerSystemView from './SolarPowerSystemView'
 import { useState } from 'react';
 import HouseHoldDetailView from './HouseHoldDetailView';
+import { District } from '~/context/serverModelContext';
 
-function HouseDetailView({data} : {data : HouseViewData}){
+function HouseDetailView({data, district} : {data : HouseViewData, district : District}){
 	
 	let houseView = new HouseViewData(data.house, data.houseHolds, data.solarPowerSystems);
 	const [selectedHouseHold, setSelectedHouseHold] = useState<HouseHoldViewData |undefined> ();
@@ -41,6 +42,16 @@ function HouseDetailView({data} : {data : HouseViewData}){
             console.error("Cannot find element with id: solarUpdateType");
         }
     }
+
+	function submitHouseHoldAdd(){
+        var elem = document.getElementById('houseHoldUpdateType');
+        if(elem != null){
+            elem.value = FormType.AddHouseHold;
+            document.forms["addHouseHoldForm"].requestSubmit();
+        } else {
+            console.error("Cannot find element with id: solarUpdateType");
+        }
+    }
 	
 	houseView.calculateSums();
 
@@ -66,6 +77,21 @@ function HouseDetailView({data} : {data : HouseViewData}){
 						<td scope="col-3">Wärmeverbrauch</td>
 						{houseView.sumHeatConsumption > 0}
 						<td scope="col" className={houseView.heatConsumptionClass}>{houseView.sumHeatConsumption} kwh</td>
+					</tr>
+					<tr>
+						<td scope="col-3">Heizbedarf ohne Holz</td>
+						{houseView.sumHeatConsumption > 0}
+						<td scope="col" className={houseView.heatConsumptionClass}>{houseView.sumGasConsumption*district.defaultValues.heatingLoss} kwh</td>
+					</tr>
+					<tr>
+						<td scope="col-3">WW Energiebedarf</td>
+						{houseView.sumHeatConsumption > 0}
+						<td scope="col" className={houseView.heatConsumptionClass}>{houseView.sumGasConsumption*district.defaultValues.heatingLoss*district.defaultValues.hotWaterPercentage} kwh</td>
+					</tr>
+					<tr>
+						<td scope="col-3">Heizbedarf Holz</td>
+						{houseView.sumHeatConsumption > 0}
+						<td scope="col" className={houseView.heatConsumptionClass}>{houseView.sumWoodConsumption} kwh</td>
 					</tr>
 					<tr>
 						<td scope="col-3">Energieklasse</td>
@@ -112,6 +138,13 @@ function HouseDetailView({data} : {data : HouseViewData}){
 							);
 						})}
 					</tbody>
+					<div id="outerForm">
+						<form method="post" id="addHouseHoldForm" action={`/map/${houseView.house.id}`}>
+							<input name="houseId" type="hidden" value={houseView.house.id}/>
+							<input name="formType" id="houseHoldUpdateType" type="hidden" value={FormType.AddHouseHold}/>
+						</form>
+					</div>
+					<button className={"col btn btn-success"} onClick={submitHouseHoldAdd}>Hinzufügen</button>
 				</table>
 			</div>
 			<div className={showSolar} id="showSolar">
@@ -198,7 +231,8 @@ export enum FormType{
 	UpdateSolarPowerSystem = 0,
 	AddSolorPowerSystem = 1,
 	UpdateHouseHold = 2,
-	RemoveSolarPowerSystem = 3
+	RemoveSolarPowerSystem = 3,
+	AddHouseHold
 }
 
 export enum HeatingType{

@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { ServerUtils } from '~/.server/ServerUtils';
 import { ActionFunctionArgs } from '@remix-run/node';
 import FilterView from '~/components/FilterView';
+import DefaultValueView from '~/components/DefaultValueView';
 
 export async function loader({params}) {
 	let houses = await db.house.findMany();
@@ -71,6 +72,9 @@ export default function ShowMap() {
 		setDistrict(district); 
 		setReload(!reload);
 	}
+
+	
+
 	return (
 	<main>
 		<ApiContext.Provider value={apiData}>
@@ -81,7 +85,7 @@ export default function ShowMap() {
 						<FilterView resetAllFilter={resetAllFilter} setHeatingAgeFilter={setHeatingAgeFilter} setHeatConsumptionFilter={setHeatConsumptionFilter}></FilterView>
 						<MyMap district={district}/>
 					</div>
-					<div className="col"><Outlet /></div>
+					<div className="col"><Outlet context={district}/></div>
 				</div>
 			
 		</ApiContext.Provider>

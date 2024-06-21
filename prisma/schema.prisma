@@ -8,9 +8,9 @@ datasource db {
 }
 
 model House {
-  id                String             @id @default(uuid())
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  id                String                  @id @default(uuid())
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
   street            String
   city              String
   houseNumber       String
@@ -20,6 +20,7 @@ model House {
   longitude         Float
   houseHolds        HouseHold[]
   solarPowerSystems SolarPowerSystem[]
+  selectionSets     HousesInSelectionSets[]
 
   @@unique([street, houseNumber, postalCode, city, country])
 }
@@ -111,4 +112,22 @@ model SolarPowerSystem {
   installedPower  Int
   batteryCapacity Int
   house           House    @relation(fields: [houseId], references: [id])
+}
+
+model SelectionSet {
+  id        String                  @id @default(uuid())
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+  setId     String
+  houses    HousesInSelectionSets[]
+}
+
+model HousesInSelectionSets {
+  house       House        @relation(fields: [houseId], references: [id])
+  houseId     String
+  selection   SelectionSet @relation(fields: [selectionId], references: [id])
+  selectionId String
+  assignedAt  DateTime     @default(now())
+
+  @@id([houseId, selectionId])
 }

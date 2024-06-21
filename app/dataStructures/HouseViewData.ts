@@ -23,6 +23,8 @@ export class HouseViewData{
 	public heatedAreaClass : string = "";
 	public sumHeatedArea : number = 0;
 	public sumHeatConsumption : number = 0;
+	public sumGasConsumption : number = 0;
+	public sumWoodConsumption : number = 0;
 	public sumElectricityConsumption : number = 0;
 	
 
@@ -87,6 +89,9 @@ export class HouseViewData{
 				heatConsumption = 130 * ( houseHold.houseHold.heatedArea? houseHold.houseHold.heatedArea : 0 ) ;
 			}
 			this.sumHeatConsumption += heatConsumption;
+			this.sumGasConsumption += houseHold.consumption.heatConsumptionGas? houseHold.consumption.heatConsumptionGas : 0;
+			let woodConsumption = houseHold.consumption.heatConsumptionWood? houseHold.consumption.heatConsumptionWood : 0
+			this.sumWoodConsumption += woodConsumption * houseHold.consumption.convertToKwhWoodFactor;
 			if(houseHold.houseHold.heatedArea == null || houseHold.houseHold.heatedArea == 0){
 				this.heatedAreaClass = "table-danger";
 				this.sumHeatedArea += 120;
@@ -95,6 +100,7 @@ export class HouseViewData{
 			}
 			this.sumElectricityConsumption += houseHold.consumption.electricityConsumption? houseHold.consumption.electricityConsumption : 0;
 		}
+		
 		
 	}
 

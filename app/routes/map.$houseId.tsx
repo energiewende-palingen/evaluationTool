@@ -1,11 +1,13 @@
 import { ActionFunctionArgs } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react'; 
+import { useLoaderData, useOutletContext } from '@remix-run/react'; 
 import { useRef, useState } from 'react';
 import { getHouseViewForHouse } from '~/.server/convertUtils';
 import { db } from '~/.server/db';
+import DefaultValueView from '~/components/DefaultValueView';
 import HouseDetailView, { FormType } from '~/components/HouseDetailView';
+import { District } from '~/context/serverModelContext';
 import { HouseHoldViewData } from '~/dataStructures/HouseHoldViewData';
-import { HouseViewData } from '~/dataStructures/HouseViewData';
+import { HouseViewData, Interest } from '~/dataStructures/HouseViewData';
 
 
 export const loader = async ({ params }) => {
@@ -48,6 +50,10 @@ export async function action({request,}: ActionFunctionArgs) {
 			console.log("remove solar power system");
 			await removeSolarPowerSystem(formData);
 			break;
+		case FormType.AddHouseHold:
+			console.log("add house hold");
+			await handleAddHouseHold(formData);
+			break;
 		default:
 			console.log("no form type for: " + formType);
 	
@@ -60,14 +66,53 @@ export async function action({request,}: ActionFunctionArgs) {
 
 export default function MapDetails() {
 	let house : HouseViewData = JSON.parse(useLoaderData());
-	
+
+	const [district, setDistrict] = useState<District> (useOutletContext());
+	const [reload, setReload] = useState(false);
+
+	function setHeatingLoss(heatingLoss: number): void {
+		district.defaultValues.heatingLoss = heatingLoss;
+		setDistrict(district); 
+		setReload(!reload);
+	}
+
+	function setHotWaterPercentage(hotWaterPercentage: number): void {
+		district.defaultValues.hotWaterPercentage = hotWaterPercentage;
+		setDistrict(district); 
+		setReload(!reload);
+	}
 
 	return (
 		<div>
-			<HouseDetailView data={house}></HouseDetailView>
-			
+			<DefaultValueView setHeatingLoss={setHeatingLoss} setHotWaterPercentage={setHotWaterPercentage}></DefaultValueView>
+			<HouseDetailView data={house} district={district}></HouseDetailView>
 		</div>
 	);
+}
+
+async function handleAddHouseHold(formData: FormData) {
+	var data = Object.fromEntries(formData);
+	let houseId : string = data['houseId'] as string;
+	
+	let houseHold = await db.houseHold.create({
+		data: {
+			house: {
+				connect: {
+					id: houseId
+				}
+			},
+			consumption : {
+				create : {}
+			},
+			heatedArea: 0,
+			interest : {
+				create : {}
+			},
+			comments: {
+				create: []
+			}	
+		}
+	});
 }
 
 async function handleUpdateHouseHold(formData: FormData) {

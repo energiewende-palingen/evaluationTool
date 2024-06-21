@@ -7,13 +7,20 @@ export class FilterData{
 	public filterHeatConsumption: boolean = false;
 }
 
+export class DefaultValueData{
+	public heatingLoss: number = 0;
+	public hotWaterPercentage: number = 0;
+}
+
 export class District {
 	public houses : HouseViewData[];
 	public filter: FilterData;
+	public defaultValues : DefaultValueData;
 
 	constructor(houses : HouseViewData[]) {
 		this.houses = houses;
 		this.filter = new FilterData();
+		this.defaultValues = new DefaultValueData();
 	}
 }
 
